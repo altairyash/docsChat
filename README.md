@@ -48,8 +48,8 @@ This project allows users to scrape documentation from a given URL, store the co
 
 ### Query AI
 - **Endpoint:** `POST /api/query`
-- **Payload:** `{ "question": "What is the main topic?" }`
-- **Response:** `{ "answer": "The main topic is..." }`
+- **Payload:** `{ "question": "How to get weekly top articles" }`
+- **Response:** `{ "answer": "You can use top_week() for that purpose" }`
 
 ## Future Enhancements
 - Support for multiple document formats (PDF, Word, etc.)
