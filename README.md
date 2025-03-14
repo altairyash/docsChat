@@ -1,36 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AI-Powered Document Analysis
 
-## Getting Started
+## Overview
+This project allows users to scrape documentation from a given URL, store the content in a Pinecone vector database, and query the stored information using OpenAI's API.
 
-First, run the development server:
+## Features
+- **Web Scraping:** Extract text from documentation URLs.
+- **Vector Database Storage:** Store extracted data in Pinecone for efficient retrieval.
+- **AI-Powered Q&A:** Use OpenAI's API to answer questions based on stored documentation.
+- **Modern UI:** Clean, SaaS-style interface with smooth gradients and glassmorphism effects.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## Tech Stack
+- **Frontend:** Next.js, React, Tailwind CSS
+- **Backend:** Node.js, Express
+- **Database:** Pinecone Vector Database
+- **AI Integration:** OpenAI API
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Installation
+1. Clone the repository:
+   ```sh
+   git clone https://github.com/your-repo.git
+   cd your-repo
+   ```
+2. Install dependencies:
+   ```sh
+   npm install
+   ```
+3. Set up environment variables:
+   Create a `.env.local` file and add:
+   ```sh
+   OPENAI_API_KEY=your_openai_api_key
+   PINECONE_API_KEY=your_pinecone_api_key
+   ```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Usage
+1. Start the development server:
+   ```sh
+   npm run dev
+   ```
+2. Enter a documentation URL and click "Scrape Document" to store the content.
+3. Ask a question related to the document, and the AI will generate an answer.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## API Endpoints
+### Scrape Document
+- **Endpoint:** `POST /api/scrape`
+- **Payload:** `{ "url": "https://example.com" }`
+- **Response:** `{ "message": "Docs scraped successfully." }`
 
-## Learn More
+### Query AI
+- **Endpoint:** `POST /api/query`
+- **Payload:** `{ "question": "What is the main topic?" }`
+- **Response:** `{ "answer": "The main topic is..." }`
 
-To learn more about Next.js, take a look at the following resources:
+## Future Enhancements
+- Support for multiple document formats (PDF, Word, etc.)
+- User authentication for personalized document storage
+- Improved search and summarization features
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## License
+This project is open-source under the MIT License.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
