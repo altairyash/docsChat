@@ -43,7 +43,7 @@ This project allows users to scrape documentation from a given URL, store the co
 ## API Endpoints
 ### Scrape Document
 - **Endpoint:** `POST /api/scrape`
-- **Payload:** `{ "url": "https://example.com" }`
+- **Payload:** `{ "url": "https://example.com/docs or https://docs.example.com/" }`
 - **Response:** `{ "message": "Docs scraped successfully." }`
 
 ### Query AI
