@@ -9,19 +9,38 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ark-ui/react": "^5.0.1",
+    "@chakra-ui/react": "^3.13.0",
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.0",
+    "@pinecone-database/pinecone": "^5.1.1",
+    "@types/got": "^9.6.12",
+    "axios": "^1.8.3",
+    "cheerio": "^1.0.0",
+    "framer-motion": "^12.5.0",
+    "got": "^14.4.6",
+    "next": "15.2.2",
+    "openai": "^4.87.3",
+    "p-queue": "^8.1.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
-    "next": "15.2.2"
+    "react-markdown": "^10.1.0",
+    "react-select": "^5.10.1",
+    "react-syntax-highlighter": "^15.6.1",
+    "react-toastify": "^11.0.5",
+    "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
-    "typescript": "^5",
+    "@eslint/eslintrc": "^3",
+    "@tailwindcss/postcss": "^4",
+    "@types/cheerio": "^0.22.35",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",
-    "@tailwindcss/postcss": "^4",
-    "tailwindcss": "^4",
+    "@types/react-syntax-highlighter": "^15.5.13",
     "eslint": "^9",
     "eslint-config-next": "15.2.2",
-    "@eslint/eslintrc": "^3"
+    "tailwindcss": "^4",
+    "typescript": "^5"
   }
 }

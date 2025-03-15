@@ -46,39 +46,52 @@ async function createOrGetIndex(): Promise<any> {
  * Splits the provided text into chunks, generates embeddings via OpenAI, 
  * and upserts each vector into the Pinecone index.
  */
-export async function storeDocs(url: string, text: string): Promise<{ success: boolean; message: string }> {
-  // Ensure the index exists or get the existing one
+export async function storeDocs(
+  url: string,
+  text: string,
+  namespace: string
+): Promise<{ success: boolean; message: string }> {
   const index = await createOrGetIndex();
+  const space = index.namespace(namespace);
 
-  // Split text into manageable chunks (adjust regex as needed)
+  // Split text into 500-character chunks
   const chunks = text.match(/.{1,500}/g) || [];
-  
-  for (const chunk of chunks) {
+  const batchSize = 5; // Adjust batch size based on performance needs
+
+  console.log(`Storing ${chunks.length} chunks in batches of ${batchSize}...`);
+
+  for (let i = 0; i < chunks.length; i += batchSize) {
+    const batch = chunks.slice(i, i + batchSize);
+
     try {
-      // Generate embedding for the chunk
-      const embeddingResponse = await openai.embeddings.create({
-        input: chunk,
-        model: "text-embedding-ada-002",
-      });
-      const embedding = embeddingResponse.data[0].embedding;
-      
-      // Generate a unique vector ID
-      const vectorId = `${url}-${Math.random().toString(36).substring(2, 10)}`;
-      console.log(`Upserting vector with ID: ${vectorId}`);
-      
-      // Upsert the vector (pass an array of records directly)
-      await index.upsert([
-        {
-          id: vectorId,
-          values: embedding,
-          metadata: { url, text: chunk },
-        },
-      ]);
-      console.log(`Upserted vector with ID: ${vectorId}`);
-    } catch (upsertError) {
-      console.error("Error upserting vector for chunk:", upsertError);
+      // Generate embeddings in parallel for better performance
+      const embeddingResponses = await Promise.all(
+        batch.map((chunk) =>
+          openai.embeddings.create({
+            input: chunk,
+            model: "text-embedding-3-small",
+          })
+        )
+      );
+
+      // Prepare vectors for upserting
+      const vectors = embeddingResponses.map((response, index) => ({
+        id: `${url}-${Math.random().toString(36).substring(2, 10)}`,
+        values: response.data[0].embedding,
+        metadata: { url, text: batch[index] },
+      }));
+
+      console.log(`Upserting batch of ${vectors.length} vectors...`);
+
+      // Upsert the entire batch
+      await space.upsert(vectors);
+
+      console.log(`Successfully upserted ${vectors.length} vectors.`);
+    } catch (error) {
+      console.error("Error processing batch:", error);
     }
   }
 
   return { success: true, message: "Docs stored successfully." };
 }
+

@@ -3,10 +3,10 @@ import { storeDocs } from "@/lib/pinecone";
 
 export async function POST(req: Request) {
   try {
-    const { url }: { url: string } = await req.json();
+    const { url, namespace }: { url: string, namespace:string } = await req.json();
     const text = await scrapeDocs(url);
     if (text) {
-      await storeDocs(url, text);
+      await storeDocs(url, text, namespace);
       return Response.json({ success: true, message: "Docs scraped and stored." });
     }
     return Response.json({ success: false, message: "Failed to scrape." }, { status: 500 });

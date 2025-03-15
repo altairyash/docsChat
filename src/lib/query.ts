@@ -6,26 +6,58 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
 const index = pinecone.Index("quickstart");
 
-export async function queryDocs(question: string): Promise<string> {
+export async function queryDocs(
+  question: string,
+  namespace: string
+): Promise<string> {
   const embedding = await openai.embeddings.create({
     input: question,
-    model: "text-embedding-ada-002",
+    model: "text-embedding-3-small",
   });
-
-  const results = await index.query({
+  const space = index.namespace(namespace);
+  const results = await space.query({
     vector: embedding.data[0].embedding,
-    topK: 5,
+    topK: 20,
     includeMetadata: true,
   });
+  const context = results.matches
+    .map((match) => match.metadata?.text)
+    .join("\n");
 
-  const context = results.matches.map((match) => match.metadata?.text).join("\n");
-
+  console.log(context);
   const response = await openai.chat.completions.create({
-    model: "gpt-4",
+    model: "gpt-3.5-turbo",
     messages: [
-      { role: "system", content: "You are an AI assistant that answers questions based on documentation." },
-      { role: "user", content: `Based on this documentation, answer: ${question}\n\n${context}` },
+      {
+        role: "system",
+        content: `You are an AI assistant that provides precise, well-structured answers to developer questions based on documentation.  
+          
+        - Format responses in **GitHub-style Markdown** with clear **headings, bullet points, and code blocks, use double new line after headings**.  
+        - Ensure explanations are **concise yet complete**, avoiding unnecessary verbosity.  
+        - Always provide **optimized, real-world** code examples that follow best practices.  
+        - Use **short paragraphs** for readability and **bold key terms** where necessary.  
+        - When listing multiple items, use **bullet points or numbered lists** for clarity.  
+        - If relevant, include **common mistakes, performance tips, or alternative approaches**.`  
+      },
+    
+      {
+        role: "user",
+        content: `## 📌 Question  
+    ${question}  
+    
+    ## 📖 Relevant Documentation  
+    \`\`\`  
+    ${context}  
+    \`\`\`  
+    
+    ## 🚀 Answer in Markdown  
+    Provide a **concise, well-structured answer** using the given documentation.  
+    - Include **clear explanations**.  
+    - Format with **headings, bullet points, and code blocks**.  
+    - Use **best practices in code examples**.`  
+      },
     ],
+    temperature: 0.7,
   });
 
   return response.choices[0].message.content ?? "";
