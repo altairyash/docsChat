@@ -31,19 +31,20 @@ async function createOrGetIndex(): Promise<any> {
       },
     });
     console.log(`Index "${indexName}" created successfully.`);
-  } catch (error: any) {
-    if (error.message && error.message.includes("ALREADY_EXISTS")) {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes("ALREADY_EXISTS")) {
       console.log(`Index "${indexName}" already exists. Using existing index.`);
     } else {
       console.error("Error creating index:", error);
       throw error;
     }
   }
+
   return pinecone.Index(indexName);
 }
 
 /**
- * Splits the provided text into chunks, generates embeddings via OpenAI, 
+ * Splits the provided text into chunks, generates embeddings via OpenAI,
  * and upserts each vector into the Pinecone index.
  */
 export async function storeDocs(
@@ -94,4 +95,3 @@ export async function storeDocs(
 
   return { success: true, message: "Docs stored successfully." };
 }
-

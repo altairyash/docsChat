@@ -10,8 +10,9 @@ export async function POST(req: Request) {
       return Response.json({ success: true, message: "Docs scraped and stored." });
     }
     return Response.json({ success: false, message: "Failed to scrape." }, { status: 500 });
-    } catch (error: any) {
+    } catch (error: unknown) {
     console.error("API POST Error:", error);
-    return Response.json({ success: false, message: error.message || "Internal server error" }, { status: 500 });
+    const errorMessage = (error instanceof Error) ? error.message : "Internal server error";
+    return Response.json({ success: false, message: errorMessage }, { status: 500 });
   }
 }

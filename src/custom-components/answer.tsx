@@ -1,13 +1,14 @@
 import ReactMarkdown from "react-markdown";
-import SyntaxHighlighter from "react-syntax-highlighter";
+import SyntaxHighlighter, { SyntaxHighlighterProps } from "react-syntax-highlighter";
 import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import remarkGfm from "remark-gfm";
+
 interface AnswerProps {
     answer: string;
     toast: (message: string) => void;
 }
 
-const Answer: React.FC<AnswerProps> = ({ answer}) => {
+const Answer: React.FC<AnswerProps> = ({ answer }) => {
     const copyToClipboard = (code: string) => {
         navigator.clipboard.writeText(code);
     };
@@ -18,7 +19,7 @@ const Answer: React.FC<AnswerProps> = ({ answer}) => {
                 <ReactMarkdown
                     remarkPlugins={[remarkGfm]}
                     components={{
-                        code({ node, className, children, ...props }) {
+                        code({ className, children, ...props }: { className?: string, children?: React.ReactNode }) {
                             const match = /language-(\w+)/.exec(className || "");
                             const codeString = String(children).trim();
                             return match ? (
@@ -30,12 +31,12 @@ const Answer: React.FC<AnswerProps> = ({ answer}) => {
                                         📋 Copy
                                     </button>
                                     <SyntaxHighlighter
-                                        style={atomDark as any}
+                                        style={atomDark}
                                         language={match[1]}
                                         PreTag="div"
                                         showLineNumbers
                                         wrapLongLines
-                                        {...(props as any)}
+                                        {...props}
                                     >
                                         {codeString}
                                     </SyntaxHighlighter>
