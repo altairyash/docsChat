@@ -15,7 +15,7 @@ export async function scrapeDocs(url: string): Promise<string | null> {
     });
 
     const $ = cheerio.load(body);
-    let textContent = $("body").text().replace(/\s+/g, " ").trim();
+    const textContent = $("body").text().replace(/\s+/g, " ").trim();
 
     cache.set(url, textContent);
     return textContent;

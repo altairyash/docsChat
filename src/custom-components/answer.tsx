@@ -4,12 +4,9 @@ import { atomDark } from "react-syntax-highlighter/dist/esm/styles/prism";
 import remarkGfm from "remark-gfm";
 interface AnswerProps {
     answer: string;
-    toast: any; // You can replace 'any' with the specific type of 'toast' if known
+    toast: (message: string) => void;
 }
-const copyToClipboard = (text: string, toast: { success: (arg0: string) => void; }) => {
-    navigator.clipboard.writeText(text);
-    toast.success("Copied to clipboard!");
-  };
+
 const Answer: React.FC<AnswerProps> = ({ answer}) => {
     const copyToClipboard = (code: string) => {
         navigator.clipboard.writeText(code);
