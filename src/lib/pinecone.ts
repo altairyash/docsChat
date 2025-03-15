@@ -1,4 +1,4 @@
-import { Pinecone } from "@pinecone-database/pinecone";
+import { Index, Pinecone } from "@pinecone-database/pinecone";
 import OpenAI from "openai";
 
 // Initialize Pinecone and OpenAI clients using environment variables
@@ -16,7 +16,7 @@ const indexName = process.env.PINECONE_INDEX_NAME || "quickstart";
  * Attempts to create the index with the correct dimensions.
  * If the index already exists, logs a message and returns the existing index.
  */
-async function createOrGetIndex(): Promise<any> {
+async function createOrGetIndex(): Promise<Index> {
   try {
     console.log(`Attempting to create index: ${indexName}`);
     await pinecone.createIndex({

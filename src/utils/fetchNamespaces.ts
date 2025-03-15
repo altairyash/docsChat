@@ -1,4 +1,8 @@
-export async function fetchNamespaces(setNamespaces: Function, setIsNamespacesLoading: Function, toast: { error: (message: string) => void }) {
+export async function fetchNamespaces(
+    setNamespaces: (namespaces: { value: string; label: string }[]) => void,
+    setIsNamespacesLoading: (loading: boolean) => void,
+    toast: { error: (message: string) => void }
+  ) {
     try {
       const res = await fetch("/api/namespaces");
       const data = await res.json();
@@ -27,9 +31,9 @@ export async function fetchNamespaces(setNamespaces: Function, setIsNamespacesLo
     selectedNamespace: string | null;
     question: string;
     cache: { [key: string]: string };
-    setCache: Function;
-    setAnswer: Function;
-    setIsLoading: Function;
+    setCache: (cache: { [key: string]: string } | ((cache: { [key: string]: string }) => { [key: string]: string })) => void;
+    setAnswer: (answer: string) => void;
+    setIsLoading: (loading: boolean) => void;
     toast: { error: (message: string) => void };
   }) {
     if (!selectedNamespace) {
@@ -56,7 +60,7 @@ export async function fetchNamespaces(setNamespaces: Function, setIsNamespacesLo
       });
       const data = await res.json();
       setAnswer(data.answer);
-      setCache((prevCache: { [key: string]: string }) => ({ ...prevCache, [cacheKey]: data.answer }));
+      setCache((prevCache: { [key: string]: string }) => ({ ...prevCache, [cacheKey]: data.answer as string }));
     } catch (error) {
       toast.error("Failed to fetch answer.");
       console.error(error);
