@@ -19,8 +19,6 @@ export function AnimatedBorder({
   children,
   className,
   containerClassName,
-  duration = 2.5,
-  borderWidth = 1,
   borderColor = "from-black via-purple-500 to-black",
   background = "bg-black",
 }: AnimatedBorderProps) {

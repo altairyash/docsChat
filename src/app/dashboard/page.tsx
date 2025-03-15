@@ -20,7 +20,6 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [isNamespacesLoading, setIsNamespacesLoading] = useState(true);
   const [cache, setCache] = useState<{ [key: string]: string }>({});
-  const [theme, setTheme] = useState("dark");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showAnswer, setShowAnswer] = useState(false); // Controls when the answer section appears
 
