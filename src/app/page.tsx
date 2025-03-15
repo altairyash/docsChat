@@ -21,20 +21,20 @@ export default function Home() {
           </span>
         </h1>
         <p className="text-gray-400 mt-4 max-w-lg text-sm sm:text-lg">
-          Open-Source AI-powered search for React, Next.js, MongoDB, Supabase, and more—get
-          answers instantly.
+          Open-Source AI-powered search for React, Next.js, MongoDB, Supabase,
+          and more—get answers instantly.
         </p>
         <Button
           size="lg"
-          className="mt-6 bg-gradient-to-r from-blue-500 to-purple-500"
+          className="mt-6 cursor-pointer bg-gradient-to-r from-blue-500 to-purple-500"
         >
-          Get Started
+          <a href="/dashboard">Get Started</a>
         </Button>
 
         {/* Feature Section - Small Cards */}
         <Features />
       </main>
-      <Footer/>
+      <Footer />
     </div>
   );
 }

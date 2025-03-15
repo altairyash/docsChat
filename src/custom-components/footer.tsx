@@ -30,7 +30,7 @@ export function Footer() {
           <Button
             variant="outline"
             size="sm"
-            className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white bg-gray-900/30"
+            className="cursor-pointer border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white bg-gray-900/30"
             onClick={() => window.open("https://github.com/yourusername/docschat", "_blank")}
           >
             <Github className="mr-2 h-4 w-4" />

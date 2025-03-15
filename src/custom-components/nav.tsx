@@ -38,7 +38,7 @@ export function Nav() {
             <span className="sr-only">Toggle theme</span>
           </Button>
 
-          <Button className="hidden md:inline-flex">Get Started</Button>
+          <Button className="hidden cursor-pointer md:inline-flex"><a href="/dashboard">Get Started</a></Button>
 
           {/* Mobile menu button */}
           <Button variant="ghost" size="icon" className="md:hidden" onClick={() => setIsMenuOpen(!isMenuOpen)}>
@@ -61,8 +61,8 @@ export function Nav() {
                 {link.name}
               </a>
             ))}
-            <div className="mt-4 px-3">
-              <Button className="w-full">Get Started</Button>
+            <div className="mt-4 px-3 cursor-pointer">
+              <a href='dashboard'><Button className="w-full">Get Started</Button></a>
             </div>
           </div>
         </div>

@@ -5,12 +5,14 @@
 @custom-variant dark (&:is(.dark *));
 
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Menlo:wght@300;400;600;700&display=swap');
 
 :root {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-menlo: 'Menlo', monospace;
   --radius: 0.625rem;
   --card: oklch(1 0 0);
   --card-foreground: oklch(0.145 0 0);
@@ -46,7 +48,7 @@
 }
 
 body {
-  font-family: Inter, Helvetica, sans-serif;
+  font-family: 'Inter', Helvetica, sans-serif;
 }
 .markdown h1 {
   font-size: 2rem;
@@ -55,13 +57,13 @@ body {
 }
 
 .markdown h2 {
-  font-size: 1.75rem;
+  font-size: 1.25rem;
   font-weight: 600;
-  margin-bottom: 1.5rem !important;
+  margin: 1.5rem 0 !important;
 }
 
 .markdown h3 {
-  font-size: 1.5rem;
+  font-size: 1rem;
   font-weight: 600;
   margin-bottom: 1.25rem !important;
 }
@@ -73,12 +75,16 @@ body {
 }
 
 /* Ensure paragraph spacing */
-.markdown p {
-  font-size: 1rem;
+.markdown {
+  font-size: 0.8rem;
   line-height: 1.8 !important;
   margin-bottom: 1rem !important;
+  color: rgb(211, 211, 211);
+  font-weight: 100;
 }
-
+.markdown p{
+  margin: 10px 0px;
+}
 /* Fix lists */
 .markdown ul, .markdown ol {
   margin-bottom: 1rem !important;
@@ -99,7 +105,7 @@ body {
 
 /* Fix code block styling */
 .markdown pre {
-  background: #1e1e1e !important;
+  background: #0c0c0c !important;
   padding: 1rem !important;
   border-radius: 6px !important;
   overflow-x: auto !important;
