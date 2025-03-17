@@ -96,7 +96,7 @@ export async function fetchGitHubDocs(githubUrl: string): Promise<string | null>
     const match = githubUrl.match(/github\.com\/([^/]+)\/([^/]+)(?:\/tree\/([^/]+)\/(.+))?/);
     if (!match) throw new Error("Invalid GitHub URL format");
 
-    const [_, owner, repo, branchFromUrl, rawPath] = match;
+    const [owner, repo, branchFromUrl, rawPath] = match;
     let branch = branchFromUrl || "main";
 
     if (!branchFromUrl) {

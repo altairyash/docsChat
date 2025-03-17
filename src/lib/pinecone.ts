@@ -8,6 +8,13 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
 const indexName = process.env.PINECONE_INDEX_NAME || "quickstart";
 
+// Define Vector type explicitly
+interface Vector {
+  id: string;
+  values: number[];
+  metadata?: Record<string, string>;
+}
+
 /**
  * Creates or retrieves an existing Pinecone index.
  */
@@ -26,8 +33,8 @@ async function createOrGetIndex(): Promise<Index> {
       },
     });
     console.log(`Index "${indexName}" created successfully.`);
-  } catch (error: any) {
-    if (error.message.includes("ALREADY_EXISTS")) {
+  } catch (error: unknown) {
+    if (error instanceof Error && error.message.includes("ALREADY_EXISTS")) {
       console.log(`Index "${indexName}" already exists.`);
     } else {
       console.error("Error creating index:", error);
@@ -42,7 +49,7 @@ async function createOrGetIndex(): Promise<Index> {
  */
 function chunkText(text: string, maxChunkSize = 3000): string[] {
   const paragraphs = text.split(/\n\s*\n/); // Split by paragraph breaks
-  let chunks: string[] = [];
+  const chunks: string[] = [];
   let currentChunk = "";
 
   for (const paragraph of paragraphs) {
@@ -61,7 +68,7 @@ function chunkText(text: string, maxChunkSize = 3000): string[] {
 /**
  * Calculates the estimated byte size of the payload.
  */
-function estimateByteSize(vectors: any[]): number {
+function estimateByteSize(vectors: Vector[]): number {
   return JSON.stringify(vectors).length;
 }
 
@@ -81,7 +88,7 @@ export async function storeDocs(
 
   const limit = pLimit(2); // Concurrency control
   const embeddingTasks = chunks.map((chunk, i) =>
-    limit(async () => {
+    limit(async (): Promise<Vector | null> => {
       console.log(`Embedding chunk ${i + 1}/${chunks.length}`);
       try {
         const response = await openai.embeddings.create({
@@ -101,13 +108,15 @@ export async function storeDocs(
     })
   );
 
-  const vectors = (await Promise.all(embeddingTasks)).filter(Boolean);
+  const vectors: Vector[] = (await Promise.all(embeddingTasks)).filter(
+    (v): v is Vector => v !== null
+  );
   console.log(`✅ Successfully generated ${vectors.length} embeddings.`);
 
   // Adaptive batch size to fit under 4MB
-  let batch: any[] = [];
+  let batch: Vector[] = [];
   let batchSize = 0;
-  const MAX_PAYLOAD_SIZE = 4194304; 
+  const MAX_PAYLOAD_SIZE = 4194304; // 4MB limit
 
   for (let i = 0; i < vectors.length; i++) {
     const vectorSize = estimateByteSize([vectors[i]]);
