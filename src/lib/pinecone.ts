@@ -1,27 +1,22 @@
 import { Index, Pinecone } from "@pinecone-database/pinecone";
 import OpenAI from "openai";
+import pLimit from "p-limit";
 
-// Initialize Pinecone and OpenAI clients using environment variables
-const pinecone = new Pinecone({
-  apiKey: process.env.PINECONE_API_KEY!,
-});
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY!,
-});
+// Initialize Pinecone and OpenAI clients
+const pinecone = new Pinecone({ apiKey: process.env.PINECONE_API_KEY! });
+const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY! });
 
-// Use the index name from env or fallback to "quickstart"
 const indexName = process.env.PINECONE_INDEX_NAME || "quickstart";
 
 /**
- * Attempts to create the index with the correct dimensions.
- * If the index already exists, logs a message and returns the existing index.
+ * Creates or retrieves an existing Pinecone index.
  */
 async function createOrGetIndex(): Promise<Index> {
   try {
-    console.log(`Attempting to create index: ${indexName}`);
+    console.log(`Checking index: ${indexName}`);
     await pinecone.createIndex({
       name: indexName,
-      dimension: 1536, // Dimension must match the output of text-embedding-ada-002
+      dimension: 1536, // Must match OpenAI embedding dimensions
       metric: "cosine",
       spec: {
         serverless: {
@@ -31,21 +26,47 @@ async function createOrGetIndex(): Promise<Index> {
       },
     });
     console.log(`Index "${indexName}" created successfully.`);
-  } catch (error: unknown) {
-    if (error instanceof Error && error.message.includes("ALREADY_EXISTS")) {
-      console.log(`Index "${indexName}" already exists. Using existing index.`);
+  } catch (error: any) {
+    if (error.message.includes("ALREADY_EXISTS")) {
+      console.log(`Index "${indexName}" already exists.`);
     } else {
       console.error("Error creating index:", error);
       throw error;
     }
   }
-
   return pinecone.Index(indexName);
 }
 
 /**
- * Splits the provided text into chunks, generates embeddings via OpenAI,
- * and upserts each vector into the Pinecone index.
+ * Splits text into sized chunks (approx. 3000 chars)
+ */
+function chunkText(text: string, maxChunkSize = 3000): string[] {
+  const paragraphs = text.split(/\n\s*\n/); // Split by paragraph breaks
+  let chunks: string[] = [];
+  let currentChunk = "";
+
+  for (const paragraph of paragraphs) {
+    if (currentChunk.length + paragraph.length < maxChunkSize) {
+      currentChunk += paragraph + "\n\n"; // Append to current chunk
+    } else {
+      chunks.push(currentChunk.trim()); // Store previous chunk
+      currentChunk = paragraph + "\n\n"; // Start new chunk
+    }
+  }
+
+  if (currentChunk) chunks.push(currentChunk.trim()); // Add last chunk
+  return chunks;
+}
+
+/**
+ * Calculates the estimated byte size of the payload.
+ */
+function estimateByteSize(vectors: any[]): number {
+  return JSON.stringify(vectors).length;
+}
+
+/**
+ * Stores document embeddings in Pinecone.
  */
 export async function storeDocs(
   url: string,
@@ -55,43 +76,60 @@ export async function storeDocs(
   const index = await createOrGetIndex();
   const space = index.namespace(namespace);
 
-  // Split text into 500-character chunks
-  const chunks = text.match(/.{1,500}/g) || [];
-  const batchSize = 5; // Adjust batch size based on performance needs
+  const chunks = chunkText(text, 3000);
+  console.log(`🚀 Storing ${chunks.length} optimized chunks (approx. 3000 chars each)...`);
 
-  console.log(`Storing ${chunks.length} chunks in batches of ${batchSize}...`);
+  const limit = pLimit(2); // Concurrency control
+  const embeddingTasks = chunks.map((chunk, i) =>
+    limit(async () => {
+      console.log(`Embedding chunk ${i + 1}/${chunks.length}`);
+      try {
+        const response = await openai.embeddings.create({
+          input: chunk,
+          model: "text-embedding-3-small",
+        });
 
-  for (let i = 0; i < chunks.length; i += batchSize) {
-    const batch = chunks.slice(i, i + batchSize);
+        return {
+          id: `${url}-${i}-${Math.random().toString(36).substring(2, 10)}`,
+          values: response.data[0].embedding,
+          metadata: { url, text: chunk },
+        };
+      } catch (error) {
+        console.error(`❌ Error embedding chunk ${i + 1}:`, error);
+        return null;
+      }
+    })
+  );
 
-    try {
-      // Generate embeddings in parallel for better performance
-      const embeddingResponses = await Promise.all(
-        batch.map((chunk) =>
-          openai.embeddings.create({
-            input: chunk,
-            model: "text-embedding-3-small",
-          })
-        )
-      );
+  const vectors = (await Promise.all(embeddingTasks)).filter(Boolean);
+  console.log(`✅ Successfully generated ${vectors.length} embeddings.`);
 
-      // Prepare vectors for upserting
-      const vectors = embeddingResponses.map((response, index) => ({
-        id: `${url}-${Math.random().toString(36).substring(2, 10)}`,
-        values: response.data[0].embedding,
-        metadata: { url, text: batch[index] },
-      }));
+  // Adaptive batch size to fit under 4MB
+  let batch: any[] = [];
+  let batchSize = 0;
+  const MAX_PAYLOAD_SIZE = 4194304; 
 
-      console.log(`Upserting batch of ${vectors.length} vectors...`);
+  for (let i = 0; i < vectors.length; i++) {
+    const vectorSize = estimateByteSize([vectors[i]]);
 
-      // Upsert the entire batch
-      await space.upsert(vectors);
-
-      console.log(`Successfully upserted ${vectors.length} vectors.`);
-    } catch (error) {
-      console.error("Error processing batch:", error);
+    if (batchSize + vectorSize > MAX_PAYLOAD_SIZE) {
+      // Upsert current batch before adding new item
+      console.log(`📤 Upserting batch (${batch.length} vectors, ~${batchSize} bytes)`);
+      await space.upsert(batch);
+      batch = [];
+      batchSize = 0;
     }
+
+    batch.push(vectors[i]);
+    batchSize += vectorSize;
   }
 
+  // Upsert final batch if not empty
+  if (batch.length > 0) {
+    console.log(`📤 Upserting final batch (${batch.length} vectors, ~${batchSize} bytes)`);
+    await space.upsert(batch);
+  }
+
+  console.log(`✅ Successfully stored ${vectors.length} embeddings in Pinecone.`);
   return { success: true, message: "Docs stored successfully." };
 }

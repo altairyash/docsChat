@@ -59,7 +59,7 @@ export function AnimatedBorder({
         }}
       />
       <div className={cn("absolute inset-0 rounded-xl", `bg-gradient-to-r ${borderColor}`)} />
-      <div className={cn("relative rounded-[10px]", background, className)}>{children}</div>
+      <div className={cn("relative rounded-[10px] h-full", background, className)}>{children}</div>
     </div>
   )
 }

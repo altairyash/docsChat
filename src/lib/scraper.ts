@@ -1,66 +1,121 @@
 import got from "got";
-import * as cheerio from "cheerio";
-import PQueue from "p-queue";
+import matter from "gray-matter";
+import { remark } from "remark";
+import strip from "strip-markdown";
 
 const cache = new Map<string, string>();
-const queue = new PQueue({ concurrency: 5 }); // Limits 5 requests at a time
-const MAX_PAGES = 20; // Limits total pages scraped
 
-export async function scrapeDocs(url: string): Promise<string | null> {
+const GITHUB_TOKEN = process.env.GITHUB_TOKEN; // Ensure you set this in your environment variables
+
+
+export async function fetchMarkdownFile(url: string): Promise<string | null> {
   if (cache.has(url)) return cache.get(url) || null;
 
   try {
-    const { body } = await got(url, {
-      headers: { "User-Agent": "Mozilla/5.0" },
-    });
+    const { body } = await got(url, { headers: { "User-Agent": "your-app" } });
+    const content = body.toString();
 
-    const $ = cheerio.load(body);
-    const textContent = $("body").text().replace(/\s+/g, " ").trim();
+    // Convert Markdown to plain text
+    const { content: markdownText } = matter(content);
+    const processed = await remark().use(strip).process(markdownText);
+    const textContent = processed.toString().trim();
 
     cache.set(url, textContent);
     return textContent;
   } catch (error) {
-    console.error("Error scraping:", url, error);
+    console.error("Error fetching file:", url, error);
     return null;
   }
 }
 
-export async function scrapeFullDocs(baseUrl: string): Promise<string | null> {
+
+async function fetchGitHubDocsRecursively(
+  owner: string,
+  repo: string,
+  branch: string,
+  path: string = ""
+): Promise<string> {
+  const apiUrl = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
+
+  console.log(`📂 Fetching directory: ${path || "root"}`);
+
+  let response;
   try {
-    const visited = new Set<string>();
-    const pagesToVisit = new Set<string>([baseUrl]);
+    response = await got(apiUrl, {
+      headers: {
+        "User-Agent": "Mozilla/5.0",
+        Authorization: GITHUB_TOKEN ? `token ${GITHUB_TOKEN}` : undefined,
+      },
+    }).json();
+  } catch (error) {
+    if (error instanceof Error) {
+      console.error(`❌ Failed to fetch contents of ${path}:`, error.message);
+    } else {
+      console.error(`❌ Failed to fetch contents of ${path}:`, error);
+    }
+    return "";
+  }
 
-    while (pagesToVisit.size > 0 && visited.size < MAX_PAGES) {
-      const urls = [...pagesToVisit].splice(0, 5); // Scrape 5 pages at a time
-      pagesToVisit.clear();
+  if (!Array.isArray(response)) {
+    console.error(`⚠️ Unexpected response format for ${path}:`, response);
+    return "";
+  }
 
-      const results = await Promise.allSettled(urls.map((url) => queue.add(() => scrapeDocs(url))));
-      results.forEach((res, i) => {
-        if (res.status === "fulfilled" && res.value) {
-          visited.add(urls[i]);
+  let allDocs = "";
+
+  for (const item of response) {
+    if (item.type === "file" && (item.name.endsWith(".md") || item.name.endsWith(".mdx"))) {
+      console.log(`📄 Fetching file: ${item.path}`);
+
+      try {
+        const fileContent = await got(item.download_url).text();
+        console.log(`✅ Successfully fetched: ${item.path}`);
+
+        allDocs += `\n\n### ${item.path}\n${fileContent}`;
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error(`❌ Failed to fetch content for ${item.path}:`, error.message);
+        } else {
+          console.error(`❌ Failed to fetch content for ${item.path}:`, error);
         }
-      });
-
-      // Extract new links to scrape
-      for (const url of visited) {
-        const { body } = await got(url);
-        const $ = cheerio.load(body);
-
-        $("a[href]").each((_, element) => {
-          const href = $(element).attr("href");
-          if (href) {
-            const fullUrl = new URL(href, baseUrl).href;
-            if (!visited.has(fullUrl) && visited.size < MAX_PAGES) {
-              pagesToVisit.add(fullUrl);
-            }
-          }
-        });
       }
+    } else if (item.type === "dir") {
+      console.log(`📂 Entering subdirectory: ${item.path}`);
+      allDocs += await fetchGitHubDocsRecursively(owner, repo, branch, item.path);
+    }
+  }
+
+  return allDocs;
+}
+
+export async function fetchGitHubDocs(githubUrl: string): Promise<string | null> {
+  try {
+    if (!githubUrl) throw new Error("GitHub URL is undefined or empty");
+    console.log("Processing GitHub URL:", githubUrl);
+
+    const match = githubUrl.match(/github\.com\/([^/]+)\/([^/]+)(?:\/tree\/([^/]+)\/(.+))?/);
+    if (!match) throw new Error("Invalid GitHub URL format");
+
+    const [_, owner, repo, branchFromUrl, rawPath] = match;
+    let branch = branchFromUrl || "main";
+
+    if (!branchFromUrl) {
+      console.log("Fetching default branch...");
+      const repoInfo = await got(`https://api.github.com/repos/${owner}/${repo}`, {
+        headers: {
+          "User-Agent": "Mozilla/5.0",
+          Authorization: `token ${process.env.GITHUB_TOKEN}`,
+        },
+      }).json();
+      branch = (repoInfo as { default_branch: string }).default_branch || "main";
+      console.log("Detected default branch:", branch);
     }
 
-    return [...visited].map((url) => cache.get(url)).join("\n");
+    console.log("Extracted GitHub Info:", { owner, repo, branch, path: rawPath || "root" });
+    return await fetchGitHubDocsRecursively(owner, repo, branch, rawPath || "");
   } catch (error) {
-    console.error("Error scraping full docs:", error);
+    console.error("Error fetching GitHub docs:", error);
     return null;
   }
 }
+

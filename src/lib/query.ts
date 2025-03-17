@@ -10,21 +10,38 @@ export async function queryDocs(
   question: string,
   namespace: string
 ): Promise<string> {
+  console.log(`🔍 Querying vector DB for namespace: ${namespace}`);
+  console.log(`📝 User question: ${question}`);
+
+  // Generate embedding for the question
   const embedding = await openai.embeddings.create({
     input: question,
     model: "text-embedding-3-small",
   });
+
+  console.log(`✅ Embedding generated successfully`);
+
+  // Query Pinecone
   const space = index.namespace(namespace);
   const results = await space.query({
     vector: embedding.data[0].embedding,
-    topK: 20,
+    topK: 10, // Adjusted for relevance
     includeMetadata: true,
   });
+
+  console.log(`🔎 Pinecone returned ${results.matches.length} results`);
+
+  if (results.matches.length === 0) {
+    console.warn(`⚠️ No relevant matches found in Pinecone.`);
+    return "I couldn't find relevant documentation for your query.";
+  }
+
   const context = results.matches
     .map((match) => match.metadata?.text)
     .join("\n");
+  console.log(`📄 Retrieved context:\n${context.slice(0, 500)}...`); // Truncated to prevent console spam
 
-  console.log(context);
+  // Generate response with OpenAI
   const response = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
     messages: [
@@ -32,7 +49,8 @@ export async function queryDocs(
         role: "system",
         content: `# AI Assistant Instructions
     
-    You are an **AI assistant** that provides **precise, well-structured answers** to developer questions based on documentation. Your responses must be **clear, professional, and formatted like GitHub documentation**.  
+    You are an **AI assistant** that provides **precise, well-structured answers** to developer questions based on documentation. Your responses must be **clear, professional, and formatted **.  
+    VERY IMPORTANT ----- PAY CLOSE ATTENTION TO USER'S QUESTION AND TRY TO ANSWER THAT **.  
     
     ## **📌 Formatting Guidelines**
     - Use **GitHub-flavored Markdown** with:
@@ -46,16 +64,11 @@ export async function queryDocs(
     ## **📖 Response Structure**
     Your response should follow this **structured format**:
     
-    ### **1️⃣ Question Summary**
-    - **Restate the question concisely**  
-    - If necessary, provide **context or clarifications**  
-    
-    ### **2️⃣ Explanation**
-    - Clearly **define key concepts**  
+    ### ** Explanation**
     - Break down **complex ideas** into **short paragraphs**  
     - Use **bold** for important terms and **italic** for emphasis  
     
-    ### **3️⃣ Code Examples**
+    ### ** Code Examples**
     - Include **real-world, optimized** code snippets  
     - Ensure code is **properly indented & syntax-highlighted**  
     - Provide **inline comments** explaining critical parts  
@@ -64,12 +77,7 @@ export async function queryDocs(
       - **Alternative approaches**
       - **Performance optimizations**  
     
-    ### **4️⃣ Edge Cases & Best Practices**
-    - Address **potential issues, errors, or limitations**  
-    - Suggest **best practices** and **efficient solutions**  
-    
-    ### **5️⃣ Summary & Performance Tips**
-    - **Summarize key takeaways**  
+    ### **Performance Tips**
     - Provide **performance considerations** if relevant  
     
     ---
@@ -77,63 +85,9 @@ export async function queryDocs(
     ## **🔹 Example Output**
     Here’s an example of how your response should be structured:  
     
-    ---
     
-    ### **📌 Problem Statement**  
-    How does \`useEffect\` work in React?  
-    
-    ### **🔍 Explanation**  
-    \`useEffect\` is a **React Hook** used for handling **side effects** in functional components. It replaces lifecycle methods like \`componentDidMount\` and \`componentDidUpdate\`.  
-    
-    ### **🚀 Code Example**
-    \`\`\`tsx
-    import { useEffect } from "react";
-    
-    function ExampleComponent() {
-      useEffect(() => {
-        console.log("Component mounted!");
-    
-        return () => {
-          console.log("Cleanup function (component unmounted)");
-        };
-      }, []);
-    
-      return <div>Hello, World!</div>;
-    }
-    \`\`\`
-    🔹 **Explanation:**  
-    - The \`useEffect\` runs **after the initial render**.  
-    - The **cleanup function** ensures proper resource management.  
-    
-    ### **⚠️ Common Mistakes**
-    - **Using \`useEffect\` without dependencies** → Runs on **every render**  
-    - **Forgetting cleanup in effects** → Causes **memory leaks**  
-    
-    ### **✅ Best Practices**
-    - **Use dependencies wisely (\`[]\`)** to control re-renders  
-    - **Always return a cleanup function** for event listeners & subscriptions  
-    
-    ---
-    
-    **Follow this structure for every response.** Ensure clarity, precision, and professional formatting.`,
-      },
-
-      {
-        role: "user",
-        content: `# 📌 Question  
-    
-    ${question}  
-    
-    ---
-    
-    ## 📖 **Relevant Documentation**  
-    \`\`\`
-    ${context}
-    \`\`\`
-    
-    ---
-    
-    ## 🚀 **Answer in Markdown**  
+     Ensure clarity, precision, and professional formatting.
+     ## 🚀 **Answer in Markdown**  
     Provide a well-structured, professional response using **GitHub-style formatting**, including:
     
     - **Clear explanations** with proper headings and spacing  
@@ -141,12 +95,19 @@ export async function queryDocs(
     - **Code examples** with inline comments and best practices  
     - **Performance considerations** and best practices summary  
     
-    **Ensure formatting meets the highest professional standards.**`,
+    **Ensure formatting meets the highest professional standards.**
+    `,
+      },
+
+      {
+        role: "user",
+        content: `**Question:**\n${question}\n\n**Relevant Documentation:**\n\`\`\`\n${context}\n\`\`\``,
       },
     ],
-
-    temperature: 0.5,
+    temperature: 0.3, // Lowered for accuracy
   });
+
+  console.log(`💬 OpenAI response received`);
 
   return response.choices[0].message.content ?? "";
 }

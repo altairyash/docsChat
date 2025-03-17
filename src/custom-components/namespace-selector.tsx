@@ -12,37 +12,40 @@ interface NamespaceSelectorProps {
 }
 
 const customStyles: StylesConfig<NamespaceOption, false, GroupBase<NamespaceOption>> = {
-  control: (provided, state) => ({
-    ...provided,
-    backgroundColor: "#161b22", // GitHub dark background
-    borderColor: state.isFocused ? "#58a6ff" : "#30363d", // Border GitHub-like
+  control: (base, state) => ({
+    ...base,
+    backgroundColor: "#161b22",
+    borderColor: state.isFocused ? "#58a6ff" : "#30363d",
+    cursor: "pointer",
     color: "#c9d1d9",
     fontFamily: "Menlo, Consolas, monospace",
     fontSize: "14px",
     boxShadow: state.isFocused ? "0 0 5px rgba(88, 166, 255, 0.5)" : "none",
+    transition: "border-color 0.2s ease-in-out",
     "&:hover": { borderColor: "#58a6ff" },
   }),
-  menu: (provided) => ({
-    ...provided,
+  menu: (base) => ({
+    ...base,
     backgroundColor: "#161b22",
     border: "1px solid #30363d",
   }),
-  option: (provided, state) => ({
-    ...provided,
+  option: (base, state) => ({
+    ...base,
     backgroundColor: state.isSelected ? "#238636" : state.isFocused ? "#1f6feb" : "#161b22",
     color: state.isSelected ? "#ffffff" : "#c9d1d9",
     fontFamily: "Menlo, Consolas, monospace",
     fontSize: "14px",
     cursor: "pointer",
+    transition: "background-color 0.2s ease-in-out",
     "&:hover": { backgroundColor: "#1f6feb" },
   }),
-  singleValue: (provided) => ({
-    ...provided,
+  singleValue: (base) => ({
+    ...base,
     color: "#c9d1d9",
     fontFamily: "Menlo, Consolas, monospace",
   }),
-  placeholder: (provided) => ({
-    ...provided,
+  placeholder: (base) => ({
+    ...base,
     color: "#8b949e",
     fontFamily: "Menlo, Consolas, monospace",
   }),
@@ -50,8 +53,8 @@ const customStyles: StylesConfig<NamespaceOption, false, GroupBase<NamespaceOpti
 
 export default function NamespaceSelector({ namespaces, isLoading, onSelect }: NamespaceSelectorProps) {
   return (
-    <div className="w-full">
-      <label className="block text-gray-400 text-sm mb-2 font-mono">Select a Namespace</label>
+    <div className="w-full space-y-2">
+      <label className="block text-gray-400 text-sm font-menlo">Select a Documentation</label>
       <Select
         options={namespaces}
         isSearchable
