@@ -41,15 +41,6 @@ This project enables users to scrape documentation exclusively from GitHub repos
    GITHUB_TOKEN=your_github_api_token  # (For fetching private GitHub repos)
    ```
 
-## Usage
-1. Start the development server:
-   ```sh
-   npm run dev
-   ```
-2. Enter a GitHub repository URL and click "Scrape Document" to store the content.
-3. Ask a question related to the document, and the AI will generate an answer with syntax-highlighted markdown rendering.
-4. Use the query refinement feature to iteratively improve results.
-
 ## API Endpoints
 ### Scrape GitHub Repository
 - **Endpoint:** `POST /api/scrape`
