@@ -71,12 +71,6 @@ This project enables users to scrape documentation exclusively from GitHub repos
     "namespace": "Github"
   }
   ```
-- **Response:**
-  ```json
-  {
-    "answer": "You can create a new branch using `git checkout -b branch_name` or `git switch -c branch_name`."
-  }
-  ```
 
 ### Example Queries
 #### Basic Query
@@ -87,7 +81,6 @@ POST /api/query
   "namespace": "Github"
 }
 ```
-**Response:** "You can create a new branch using `git checkout -b branch_name` or `git switch -c branch_name`."
 
 #### Scraping GitHub Docs Itself
 ```sh
@@ -99,28 +92,12 @@ POST /api/scrape
 ```
 **Follow-up Query:** "How do I create a GitHub Actions workflow?"
 
-#### Advanced Query Combining Multiple Tech Stacks
-```json
-POST /api/query
-{
-  "question": "How do I integrate GitHub Actions with AWS Lambda using Terraform?",
-  "namespace": "Github"
-}
-```
-**Response:** Detailed step-by-step instructions including GitHub Actions YAML, Terraform configuration, and AWS Lambda deployment.
-
 #### Querying GitHub Actions Setup
 ```json
 POST /api/query
 {
   "question": "How to set up GitHub Actions?",
   "namespace": "Github"
-}
-```
-**Expected Response:**
-```json
-{
-  "answer": "To set up GitHub Actions, create a `.github/workflows` directory in your repository and add a YAML file (e.g., `ci.yml`) inside it. Define your workflow steps, including triggers, jobs, and actions."
 }
 ```
 
