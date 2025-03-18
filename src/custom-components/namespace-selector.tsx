@@ -9,6 +9,7 @@ interface NamespaceSelectorProps {
   namespaces: NamespaceOption[];
   isLoading: boolean;
   onSelect: (value: string | null) => void;
+  currentSelected: string | null;
 }
 
 const customStyles: StylesConfig<NamespaceOption, false, GroupBase<NamespaceOption>> = {
@@ -51,7 +52,7 @@ const customStyles: StylesConfig<NamespaceOption, false, GroupBase<NamespaceOpti
   }),
 };
 
-export default function NamespaceSelector({ namespaces, isLoading, onSelect }: NamespaceSelectorProps) {
+export default function NamespaceSelector({ namespaces, isLoading, onSelect, currentSelected}: NamespaceSelectorProps) {
   return (
     <div className="w-full space-y-2">
       <label className="block text-gray-400 text-sm font-menlo">Select a Documentation</label>
@@ -62,6 +63,7 @@ export default function NamespaceSelector({ namespaces, isLoading, onSelect }: N
         placeholder="Search namespace..."
         isLoading={isLoading}
         onChange={(e) => onSelect((e as SingleValue<NamespaceOption>)?.value || null)}
+        value={namespaces.find((ns) => ns.value === currentSelected)}
       />
     </div>
   );

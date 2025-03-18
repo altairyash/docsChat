@@ -60,6 +60,9 @@ body {
   background-image: url('/bg.jpg');
   background-size: cover;
 }
+button {
+  cursor: pointer;
+}
 .playfair-display {
   font-family: "Playfair Display", serif;
   font-optical-sizing: auto;
@@ -86,13 +89,13 @@ body {
 }
 
 .markdown h3 {
-  font-size: 1.25rem;
+  font-size: 1.75rem !important;
   font-weight: 600;
   color: white;
   margin: 1.5rem 0 1rem !important;
 }
 
-.markdown h4 {
+.markdown h4 , strong{
   font-size: 1rem;
   font-weight: 600;
   color: white;
@@ -112,7 +115,7 @@ body {
 }
 
 .markdown code {
-  padding: 0.25rem 0.5rem !important;
+  padding: 0.25rem 0rem !important;
   border-radius: 5px !important;
   font-size: 0.95rem !important;
   color: #e6e6e6 !important;
@@ -120,6 +123,7 @@ body {
 }
 
 .markdown pre {
+  margin-top: 10px !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 10px !important;
   overflow-x: auto !important;

@@ -21,9 +21,9 @@ const Answer: React.FC<AnswerProps> = ({ answer, isLoading }) => {
   };
 
   return (
-    <div className="pt-0 max-w-screen markdown min-h-full max-h-screen overflow-y-scroll no-scrollbar w-full backdrop-blur-md p-6 shadow-xl text-white rounded-lg">
+    <div className="pt-0 flex flex-col max-w-screen markdown min-h-full max-h-screen overflow-y-scroll no-scrollbar w-full p-6 shadow-xl text-white rounded-lg mr-4 ml-0 rounded-b-lg border-gray-700 bg-gray-900/40 backdrop-blur-2xl ">
       {isLoading ? (
-        <div className="flex items-center min-h-full justify-center h-full">
+        <div className="flex items-center min-h-full justify-center h-full min-w-full">
           <LoaderSVG />
         </div>
       ) : (
@@ -49,12 +49,12 @@ const Answer: React.FC<AnswerProps> = ({ answer, isLoading }) => {
               if (!codeString) return null;
 
               return !inline && match ? (
-                <div className="relative bg-gray-900 rounded-lg overflow-hidden">
+                <div className="relative !  bg-black/50 rounded-lg overflow-hidden">
                   <button
                     onClick={() => copyToClipboard(codeString)}
-                    className="absolute top-2 right-2 px-3 py-1 text-sm text-white bg-gray-800 rounded-md hover:bg-gray-700 transition"
+                    className="absolute top-2 right-2 px-3 py-1 text-sm text-white bg-[#212121] rounded-md border border-black flex hover:bg-gray-700 transition"
                   >
-                    {copiedCode === codeString ? "✔ Copied!" : "📄 Copy"}
+                    {copiedCode === codeString ? "Copied" : "📄"}
                   </button>
                   <SyntaxHighlighter
                     style={oneDark}
