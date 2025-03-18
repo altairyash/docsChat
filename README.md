@@ -17,11 +17,11 @@ This project enables users to scrape documentation exclusively from GitHub repos
 - **Code Block Copying:** Easily copy code snippets from AI-generated responses with a single click.
 
 ## Tech Stack
-- **Frontend:** Next.js, React, Tailwind CSS
-- **Backend:** Node.js, Express
-- **Database:** Pinecone Vector Database
-- **AI Integration:** OpenAI API
-- **Additional Libraries:** got, remark, gray-matter, react-markdown, syntax-highlighter
+- **Frontend:** Next.js, React, Tailwind CSS  
+- **Backend:** Node.js, Express  
+- **Database:** Pinecone Vector Database  
+- **AI Integration:** OpenAI API  
+- **Additional Libraries:** got, remark, gray-matter, react-markdown, syntax-highlighter  
 
 ## Installation
 1. Clone the repository:
@@ -41,23 +41,50 @@ This project enables users to scrape documentation exclusively from GitHub repos
    GITHUB_TOKEN=your_github_api_token  # (For fetching private GitHub repos)
    ```
 
+## Usage
+1. Start the development server:
+   ```sh
+   npm run dev
+   ```
+2. Enter a GitHub repository URL and click "Scrape Document" to store the content.
+3. Ask a question related to the document, and the AI will generate an answer with syntax-highlighted markdown rendering.
+4. Use the query refinement feature to iteratively improve results.
+
 ## API Endpoints
 ### Scrape GitHub Repository
 - **Endpoint:** `POST /api/scrape`
-- **Payload:** `{ "url": "https://github.com/user/repo" }`
+- **Payload:**
+  ```json
+  {
+    "url": "https://github.com/github/docs/tree/main/content",
+    "namespace": "Github"
+  }
+  ```
 - **Response:** `{ "message": "Docs scraped successfully." }`
 
 ### Query AI
 - **Endpoint:** `POST /api/query`
-- **Payload:** `{ "question": "How does GitHub Actions work?" }`
-- **Response:** `{ "answer": "GitHub Actions allow you to automate workflows in your repository using YAML-based configuration files." }`
+- **Payload:**
+  ```json
+  {
+    "question": "How do I create a new branch in Git?",
+    "namespace": "Github"
+  }
+  ```
+- **Response:**
+  ```json
+  {
+    "answer": "You can create a new branch using `git checkout -b branch_name` or `git switch -c branch_name`."
+  }
+  ```
 
 ### Example Queries
 #### Basic Query
 ```sh
 POST /api/query
 {
-  "question": "How do I create a new branch in Git?"
+  "question": "How do I create a new branch in Git?",
+  "namespace": "Github"
 }
 ```
 **Response:** "You can create a new branch using `git checkout -b branch_name` or `git switch -c branch_name`."
@@ -66,19 +93,36 @@ POST /api/query
 ```sh
 POST /api/scrape
 {
-  "url": "https://github.com/github/docs"
+  "url": "https://github.com/github/docs/tree/main/content",
+  "namespace": "Github"
 }
 ```
 **Follow-up Query:** "How do I create a GitHub Actions workflow?"
 
 #### Advanced Query Combining Multiple Tech Stacks
-```sh
+```json
 POST /api/query
 {
-  "question": "How do I integrate GitHub Actions with AWS Lambda using Terraform?"
+  "question": "How do I integrate GitHub Actions with AWS Lambda using Terraform?",
+  "namespace": "Github"
 }
 ```
 **Response:** Detailed step-by-step instructions including GitHub Actions YAML, Terraform configuration, and AWS Lambda deployment.
+
+#### Querying GitHub Actions Setup
+```json
+POST /api/query
+{
+  "question": "How to set up GitHub Actions?",
+  "namespace": "Github"
+}
+```
+**Expected Response:**
+```json
+{
+  "answer": "To set up GitHub Actions, create a `.github/workflows` directory in your repository and add a YAML file (e.g., `ci.yml`) inside it. Define your workflow steps, including triggers, jobs, and actions."
+}
+```
 
 ## Future Enhancements
 - **Select Multiple Docs:** Query across multiple repositories simultaneously.
@@ -91,4 +135,4 @@ POST /api/query
 
 ## License
 This project is open-source under the MIT License.
-
+```
