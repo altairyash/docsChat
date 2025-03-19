@@ -126,7 +126,6 @@ button {
   margin-top: 10px !important;
   border: 1px solid rgba(255, 255, 255, 0.1) !important;
   border-radius: 10px !important;
-  overflow-x: auto !important;
   font-size: 0.85rem !important;
   line-height: 1.4 !important;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15) !important;
