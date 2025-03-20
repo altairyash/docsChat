@@ -1,4 +1,4 @@
-# AI-Powered Document Analysis
+# AI-Powered Tech Docs Analysis
 
 ## Overview
 This project allows users to scrape documentation from a given URL, store the content in a Pinecone vector database, and query the stored information using OpenAI's API.
